@@ -2,6 +2,7 @@
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{graphicx}
+\graphicspath{ {\string~/Documents/LaTeX/} }
 \usepackage{url}
 \usepackage{amsmath}
 \usepackage{fancyvrb}
@@ -12,92 +13,172 @@
 
 \begin{document}
 
-	\maketitle
+\maketitle
 
-	\section{Task 1}
-	\section{Exercise 1:}
+\section{Task 1}
 
-	\textbf{a)}\\
+The demo of interpolation will show a circle shape moving from the top left corner to the bottom right corner of the screen.
+The shape will begin as a small, dark line, and end up being a large, lightly colored oval shape. \\
+
+Using the 'float lerp' function we can return the interpolated version of P0 and P1 based on the variable 'tid'. \\
+
+\begin{verbatim}
+
+  float lerp(float tid, float P0, float P1) { // Returns interpolated float.
+      return (P1 - P0) * tid + P0;
+  }
+
+\end{verbatim}
+
+The following variables are used to interpolate to and from. \\
+
+\begin{verbatim}
+
+float minX = 5.0f;
+float minY = 5.0f; // X and Y pos. for where the circle begins
+
+float maxX = WIDTH - 150.0f;
+float maxY = HEIGTH - 150.0f; // X and Y pos. for where the circle ends
+
+float minRadius = 5.0f;     // Beginning radius
+float maxRadius = 300.0f;   // Ending radius
+
+float minCol = 1.0f;    // Beginning color
+float maxCol = 255.0f;  // Ending color
+
+float minScl = 0.0f;  // Beginning scale
+float maxScl = 1.0f;  // Ending scale
+
+\end{verbatim}
+
+Changing the poisition utilizes CircleShape.setPosition, taking an x and y value. \\
+
+\begin{verbatim}
+
+  // Interpolating position
+  c.setPosition(lerp(t, minX, maxX),lerp(t, minY, maxY));
+
+\end{verbatim}
 
 
-	\section{Exercise 2:}
+\begin{center}
+\includegraphics[scale=0.25]{c1.png}
+\end{center}
 
+Changing the size utilizes CircleShape.setRadius, taking a single value that slowly increases. \\
 
+\begin{verbatim}
 
+  // Interpolating size
+  c.setRadius(lerp(t, minRadius, maxRadius*0.75));
 
-\section{Task 2}
+\end{verbatim}
+
+\begin{center}
+\includegraphics[scale=0.25]{c2.png}
+\end{center}
+
+Changing the color utilizes CircleShape.setFillColor. This function takes 3 variables.
+In this example they are scaled with +50 and +100 to vary the color from only white to black. \\
+
+\begin{verbatim}
+
+  // Interpolating color
+  c.setFillColor(sf::Color(lerp(t, minCol+50, maxCol),
+                           lerp(t, maxCol, minCol),
+                           lerp(t, minCol+100, maxCol)));
+
+\end{verbatim}
+
+\begin{center}
+\includegraphics[scale=0.25]{c3.png}
+\end{center}
+
+Changing the shape utilizes CircleShape.setScale, taking 2 values: the size in the x direction and the size in the y direction. \\
+
+\begin{verbatim}
+
+  // Interpolating shape
+  c.setScale(lerp(t, minScl, maxScl)*5, lerp(t, minScl, maxScl)+minX/4);
+
+\end{verbatim}
+
+\begin{center}
+\includegraphics[scale=0.25]{c4.png}
+\end{center}
+
+The time variable is incremented by 0.001 each game loop, and reseting when t exceeds 1. \\
+\begin{verbatim}
+
+  t += 0.001f;
+    if(t > 1) {
+        t = 0;
+    }
+
+\end{verbatim}
+
+\section{Task 4}
 
 \textbf{a)}\\\\
 
-\textbf{The program: }
+Defining an array of lines 'lines', capable of storing a maximum 1025 lines. \\
+The first and last line is set to the middle of the screen. \\\\
 
 \begin{verbatim}
 
-import numpy as np
+  sf::VertexArray lines(sf::LinesStrip, WIDTH+1);
 
-m = np.array([[1,2,3,4],[3,4,5,6],[3,2,1,1]])
-
-U, d, V = np.linalg.svd(m, full_matrices = False)
-D = np.diag(d)
-
-  # by printing the matrices multiplied by each other we can see
-  # that the product of them is 'M'
-
-print(U @ D @ V)
+      lines[0].position = sf::Vector2f(0,HEIGTH/2);
+      lines[WIDTH].position = sf::Vector2f(WIDTH, HEIGTH/2);
 
 \end{verbatim}
 
+A float array of datapoints is declared to store 1025 values. \\
 
-
-\textbf{The output:}
+The first and last value in the data structure is set to 0.0f.\\\\
 
 \begin{verbatim}
 
-
-[[ 1.  2.  3.  4.]
-[ 3.  4.  5.  6.]
-[ 3.  2.  1.  1.]]
+      float data[WIDTH+1];
+      data[0] = 0.0f;
+      data[WIDTH] = 0.0f;
 
 \end{verbatim}
 
-The program first runs a singular value decomposition on the matrix M. \\
-By multiplying all the matrices we got from the decomposition, we get the initial matrix M, as we can see from the output of the program. \\\\
-
-
-\textbf{b}\\\\
-
-Tested the code by implementing different values. \\\\
-
-
-\textbf{c)}\\\\
-
-The following sources was used for instructions.\\\\
-
-\bibitem{Wiki}
-Wikipedia, k-NN
-\\\texttt{https://en.wikipedia.org/wiki/K-nearest_neighbors_algorithm}
-\end{thebibliography}
-\bibitem{Tut}
-Tutorial to implement k-NN
-\\\texttt{https://machinelearningmastery.com/tutorial-to-implement-k-nearest-neighbors-in-python-from-scratch/}
-\end{thebibliography}
-\\\\
-
-Pseudocode:\\\\
-
-Using a getNeighbours function to count the variable k nearest, at the distance d.\\\\
+The first loop happens 512 times, dividing stepsize (=1024) by 2 each time.
+The nested loop with 'int i' moves 1 stepsize each increment. \\\\
 
 \begin{verbatim}
 
-def getNeighbours(k, d):
-  set distance to equal d.
-  set counting variable to equal k.
-	  define a neighbour x.
-    for x in range d, and less or equal to k {
-      neighbours.append(x)
-    }
+  for (int stepsize = WIDTH; stepsize > 1; stepsize/=2) {
+      for (int i = stepsize/2; i < WIDTH; i += stepsize) {
 
-  return neighbours.
+\end{verbatim}
+
+The following bits of code happens inside the nested for-loops. \\
+
+Creating a random value 'val' and scaling it to a suitable size based on screen heigth. \\\\
+
+\begin{verbatim}
+
+      val = dis(gen);
+      val *= HEIGTH/2.5;
+
+\end{verbatim}
+
+The data[i] value will function as the corresponding y-value for line[i], using
+the midpoint displacement algorithm. \\
+
+When exiting the nested loop, alpha (0.5) is divided by beta (2.0). \\\\
+
+\begin{verbatim}
+
+              data[i] = ((data[i-stepsize/2] + data[i+stepsize/2])/2 + alpha*val);
+
+              lines[i].position = sf::Vector2f(WIDTH/(WIDTH/2)*i, data[i]+HEIGTH/2);
+
+          } alpha /= beta;
+      }
 
 \end{verbatim}
 
